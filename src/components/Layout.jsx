@@ -34,6 +34,7 @@ import {
 } from 'lucide-react';
 import { useTheme } from '@/components/ThemeProvider';
 import { useAuth } from '@/contexts/AuthContext';
+import BackButton from '@/components/BackButton';
 
 const Layout = ({ children }) => {
   const [isOpen, setIsOpen] = useState(false);
