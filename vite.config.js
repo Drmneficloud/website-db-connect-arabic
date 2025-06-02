@@ -185,6 +185,9 @@ logger.error = (msg, options) => {
 export default defineConfig({
 	customLogger: logger,
 	plugins: [react(), addTransformIndexHtml],
+	define: {
+		__WS_TOKEN__: JSON.stringify(process.env.WS_TOKEN || ''),
+	},
 	server: {
 		port: 8080,
 		cors: true,
