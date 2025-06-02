@@ -1,6 +1,12 @@
+
 import { createClient } from '@supabase/supabase-js';
 
-const supabaseUrl = 'https://otvyrcmwshxheiwlfqgw.supabase.co';
-const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im90dnlyY213c2h4aGVpd2xmcWd3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDgxNzAxODgsImV4cCI6MjA2Mzc0NjE4OH0.7n3nNgWX6qcS-2mARDwVhxtP2ikWbY-6Ih9lPGGhZuc';
+const supabaseUrl = 'https://xmuqykvmkomzuykkvnpt.supabase.co';
+const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhtdXF5a3Zta29tenV5a2t2bnB0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDg4MjE3NDAsImV4cCI6MjA2NDM5Nzc0MH0.wijNq8fN2-4vJ_ZLEwPobL-zEF7RBMGTiL5CxKuXXvo';
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey);
+export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
+  auth: {
+    persistSession: true,
+    autoRefreshToken: true,
+  }
+});

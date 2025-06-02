@@ -1,202 +1,285 @@
-import React, { useState, useEffect } from 'react';
-    import { Link, useNavigate, useLocation } from 'react-router-dom';
-    import { Button } from '@/components/ui/button';
-    import { Home, HelpCircle, Search, User, LogIn, Settings, Moon, Sun, Smartphone, Store, MessageSquare, LogOut, ShieldCheck, ArrowLeft, Mail as MailIcon, Menu as MenuIconLucide } from 'lucide-react';
-    import { motion, AnimatePresence } from 'framer-motion';
-    import { useTheme } from '@/components/ThemeProvider';
-    import { useAuth } from '@/contexts/AuthContext.jsx';
-    import { supabase } from '@/lib/supabaseClient';
-    import { useToast } from '@/components/ui/use-toast';
-    import {
-      DropdownMenu,
-      DropdownMenuContent,
-      DropdownMenuItem,
-      DropdownMenuSeparator,
-      DropdownMenuTrigger,
-    } from "@/components/ui/dropdown-menu";
 
-    const Layout = ({ children }) => {
-      const navigate = useNavigate();
-      const location = useLocation();
-      const { theme, setTheme } = useTheme();
-      const { user, userRole, loading, signOut: authSignOut } = useAuth();
-      const { toast } = useToast();
-      const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-      const [platformSettings, setPlatformSettings] = useState({ 
-        whatsapp_number: '966538182861', 
-        contact_email: 'Dr.mnef@Gmail.Com',
-        logo_url: '/assets/images/logo-placeholder.png' 
-      });
+import React, { useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import { Button } from '@/components/ui/button';
+import { 
+  Sheet, 
+  SheetContent, 
+  SheetDescription, 
+  SheetHeader, 
+  SheetTitle, 
+  SheetTrigger 
+} from '@/components/ui/sheet';
+import { 
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { 
+  Menu, 
+  Moon, 
+  Sun, 
+  User, 
+  LogOut, 
+  Settings, 
+  Package,
+  Home,
+  Phone,
+  ShoppingCart,
+  UserPlus,
+  LogIn
+} from 'lucide-react';
+import { useTheme } from '@/components/ThemeProvider';
+import { useAuth } from '@/contexts/AuthContext';
 
+const Layout = ({ children }) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const { theme, setTheme } = useTheme();
+  const { user, userRole, signOut, loading } = useAuth();
+  const navigate = useNavigate();
 
-      useEffect(() => {
-        const fetchPlatformSettings = async () => {
-          const { data, error } = await supabase
-            .from('platform_settings')
-            .select('whatsapp_number, contact_email, logo_url')
-            .eq('id', 1)
-            .single();
-          if (error && error.code !== 'PGRST116') { 
-            console.warn('Error fetching platform settings for layout:', error.message);
-            // Keep default values if fetch fails but not for "no rows"
-          } else if (data) {
-            setPlatformSettings(data);
-          }
-        };
-        fetchPlatformSettings();
-      }, []);
+  const handleSignOut = async () => {
+    await signOut();
+    navigate('/');
+  };
 
+  const navigation = [
+    { name: 'الرئيسية', href: '/', icon: Home },
+    { name: 'تتبع الطلب', href: '/track-order', icon: Package },
+    { name: 'الدعم الفني', href: '/support', icon: Phone },
+  ];
 
-      const navLinks = [
-        { name: 'الرئيسية', path: '/', icon: <Home className="w-5 h-5 ml-2" /> },
-        { name: 'تتبع الطلب', path: '/track-order', icon: <Search className="w-5 h-5 ml-2" /> },
-        { name: 'الدعم الفني', path: '/support', icon: <HelpCircle className="w-5 h-5 ml-2" /> },
-      ];
-
-      const handleSignOut = async () => {
-        await authSignOut();
-        toast({ title: "تم تسجيل الخروج بنجاح" });
-        navigate('/login');
-      };
-      
-      const toggleMobileMenu = () => setIsMobileMenuOpen(!isMobileMenuOpen);
-
-      const showBackButton = location.pathname !== '/' && 
-                             !location.pathname.startsWith('/admin') && 
-                             !location.pathname.startsWith('/dashboard') &&
-                             location.pathname !== '/login' && 
-                             location.pathname !== '/register' &&
-                             location.pathname !== '/forgot-password';
-
-
-      return (
-        <div dir="rtl" className="min-h-screen flex flex-col bg-gradient-to-br from-slate-50 to-gray-100 dark:from-slate-900 dark:to-slate-800 text-gray-800 dark:text-gray-200">
-          <header className="sticky top-0 z-50 shadow-lg bg-white/80 dark:bg-slate-950/80 backdrop-blur-md">
-            <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-              <div className="flex items-center justify-between h-20">
-                <Link to="/" className="flex items-center space-x-2 rtl:space-x-reverse">
-                  {platformSettings.logo_url && platformSettings.logo_url !== '/assets/images/logo-placeholder.png' ? (
-                    <img-replace src={platformSettings.logo_url} alt="Drmnef Logo" className="h-10 w-auto" />
-                  ) : (
-                    <Smartphone className="h-8 w-8 text-primary" /> 
-                  )}
-                  <h1 className="text-3xl font-bold gradient-text">Drmnef</h1>
-                </Link>
-                <nav className="hidden md:flex items-center space-x-4 rtl:space-x-reverse">
-                  {navLinks.map((link) => (
-                    <Button key={link.name} variant="ghost" onClick={() => navigate(link.path)} className="text-lg font-medium hover:text-primary transition-colors flex items-center">
-                      {link.icon}
-                      <span>{link.name}</span>
-                    </Button>
-                  ))}
-                </nav>
-                <div className="flex items-center space-x-3 rtl:space-x-reverse">
-                  <Button variant="outline" size="icon" onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}>
-                    {theme === 'dark' ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
-                    <span className="sr-only">Toggle theme</span>
-                  </Button>
-                  {!loading && (
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="icon">
-                          <User className="h-6 w-6" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end" className="w-56 bg-white dark:bg-slate-800 shadow-xl rounded-lg border border-gray-200 dark:border-slate-700">
-                        {user ? (
-                          <>
-                            <DropdownMenuItem onClick={() => navigate(userRole === 'admin' ? '/admin' : '/dashboard')} className="flex items-center space-x-2 rtl:space-x-reverse p-3 hover:bg-slate-100 dark:hover:bg-slate-700 cursor-pointer">
-                              {userRole === 'admin' ? <ShieldCheck className="w-5 h-5 text-primary" /> : <Settings className="w-5 h-5 text-primary" />}
-                              <span>{userRole === 'admin' ? 'لوحة تحكم المدير' : 'لوحة التحكم'}</span>
-                            </DropdownMenuItem>
-                            <DropdownMenuSeparator className="bg-gray-200 dark:bg-slate-700" />
-                            <DropdownMenuItem onClick={handleSignOut} className="flex items-center space-x-2 rtl:space-x-reverse p-3 hover:bg-slate-100 dark:hover:bg-slate-700 cursor-pointer text-red-600 dark:text-red-400">
-                              <LogOut className="w-5 h-5" />
-                              <span>تسجيل الخروج</span>
-                            </DropdownMenuItem>
-                          </>
-                        ) : (
-                          <>
-                            <DropdownMenuItem onClick={() => navigate('/login')} className="flex items-center space-x-2 rtl:space-x-reverse p-3 hover:bg-slate-100 dark:hover:bg-slate-700 cursor-pointer">
-                              <LogIn className="w-5 h-5 text-primary" />
-                              <span>تسجيل الدخول</span>
-                            </DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => navigate('/register')} className="flex items-center space-x-2 rtl:space-x-reverse p-3 hover:bg-slate-100 dark:hover:bg-slate-700 cursor-pointer">
-                              <User className="w-5 h-5 text-primary" />
-                              <span>إنشاء حساب</span>
-                            </DropdownMenuItem>
-                             <DropdownMenuSeparator className="bg-gray-200 dark:bg-slate-700" />
-                             <DropdownMenuItem onClick={() => navigate('/admin/login')} className="flex items-center space-x-2 rtl:space-x-reverse p-3 hover:bg-slate-100 dark:hover:bg-slate-700 cursor-pointer">
-                              <ShieldCheck className="w-5 h-5 text-red-500" />
-                              <span>دخول المدير</span>
-                            </DropdownMenuItem>
-                          </>
-                        )}
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  )}
-                  <Button className="md:hidden" variant="ghost" size="icon" onClick={toggleMobileMenu}>
-                     <MenuIconLucide className="h-6 w-6" />
-                  </Button>
-                </div>
-              </div>
+  return (
+    <div className="min-h-screen bg-background">
+      {/* Header */}
+      <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+        <div className="container flex h-16 items-center justify-between">
+          {/* Logo */}
+          <Link to="/" className="flex items-center space-x-2 space-x-reverse">
+            <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center">
+              <span className="text-white font-bold text-sm">D</span>
             </div>
-            <AnimatePresence>
-              {isMobileMenuOpen && (
-                <motion.div 
-                  initial={{ opacity: 0, height: 0 }}
-                  animate={{ opacity: 1, height: 'auto' }}
-                  exit={{ opacity: 0, height: 0 }}
-                  className="md:hidden border-t border-gray-200 dark:border-slate-700 overflow-hidden"
-                >
-                  <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3">
-                    {navLinks.map((link) => (
-                      <Button key={link.name} variant="ghost" onClick={() => { navigate(link.path); setIsMobileMenuOpen(false); }} className="w-full justify-start text-lg font-medium hover:text-primary transition-colors flex items-center">
-                        {link.icon}
-                        <span>{link.name}</span>
-                      </Button>
-                    ))}
-                  </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </header>
+            <span className="font-bold text-xl gradient-text">Drmnef</span>
+          </Link>
 
-          <main className="flex-grow container mx-auto px-4 sm:px-6 lg:px-8 py-8">
-            {showBackButton && (
-                <Button variant="outline" onClick={() => navigate(-1)} className="mb-6 flex items-center">
-                    <ArrowLeft className="w-4 h-4 mr-2 rtl:mr-0 rtl:ml-2" />
-                    <span>عودة</span>
+          {/* Desktop Navigation */}
+          <nav className="hidden md:flex items-center space-x-6 space-x-reverse">
+            {navigation.map((item) => (
+              <Link
+                key={item.name}
+                to={item.href}
+                className="text-sm font-medium transition-colors hover:text-primary"
+              >
+                {item.name}
+              </Link>
+            ))}
+          </nav>
+
+          {/* Desktop Actions */}
+          <div className="hidden md:flex items-center space-x-4 space-x-reverse">
+            {/* Theme Toggle */}
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setTheme(theme === 'light' ? 'dark' : 'light')}
+            >
+              <Sun className="h-4 w-4 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
+              <Moon className="absolute h-4 w-4 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
+            </Button>
+
+            {/* User Menu or Auth Buttons */}
+            {loading ? (
+              <div className="w-8 h-8 rounded-full bg-gray-200 animate-pulse" />
+            ) : user ? (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" className="relative h-8 w-8 rounded-full">
+                    <User className="h-4 w-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent className="w-56" align="end" forceMount>
+                  <DropdownMenuLabel className="font-normal">
+                    <div className="flex flex-col space-y-1">
+                      <p className="text-sm font-medium leading-none">
+                        {user.user_metadata?.full_name || user.email}
+                      </p>
+                      <p className="text-xs leading-none text-muted-foreground">
+                        {user.email}
+                      </p>
+                    </div>
+                  </DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={() => navigate('/dashboard')}>
+                    <Settings className="mr-2 h-4 w-4" />
+                    <span>لوحة التحكم</span>
+                  </DropdownMenuItem>
+                  {userRole === 'admin' && (
+                    <DropdownMenuItem onClick={() => navigate('/admin')}>
+                      <Settings className="mr-2 h-4 w-4" />
+                      <span>إدارة النظام</span>
+                    </DropdownMenuItem>
+                  )}
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={handleSignOut}>
+                    <LogOut className="mr-2 h-4 w-4" />
+                    <span>تسجيل الخروج</span>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            ) : (
+              <div className="flex items-center space-x-2 space-x-reverse">
+                <Button variant="ghost" size="sm" onClick={() => navigate('/auth')}>
+                  <LogIn className="mr-2 h-4 w-4" />
+                  تسجيل الدخول
                 </Button>
-            )}
-            {children}
-          </main>
-
-          <footer className="bg-slate-800 dark:bg-slate-950 text-slate-300 dark:text-slate-400 py-12 text-center">
-            <div className="container mx-auto">
-              <p className="text-lg">&copy; {new Date().getFullYear()} Drmnef. جميع الحقوق محفوظة.</p>
-              <p className="mt-2 text-md">نقدم حلول احترافية لخدمات الأجهزة الذكية وتطوير المتاجر.</p>
-              <div className="mt-4 flex justify-center items-center space-x-4 rtl:space-x-reverse">
-                <a href={`mailto:${platformSettings.contact_email || 'Dr.mnef@Gmail.Com'}`} className="hover:text-primary transition-colors"><MailIcon className="w-7 h-7" /></a>
-                <a href={`https://wa.me/${(platformSettings.whatsapp_number || '966538182861').replace(/\+/g, '')}`} target="_blank" rel="noopener noreferrer" className="hover:text-primary transition-colors"><Smartphone className="w-7 h-7" /></a>
-                <Link to="/" className="hover:text-primary transition-colors"><Store className="w-7 h-7" /></Link>
+                <Button size="sm" onClick={() => navigate('/auth')}>
+                  <UserPlus className="mr-2 h-4 w-4" />
+                  إنشاء حساب
+                </Button>
               </div>
-            </div>
-          </footer>
+            )}
+          </div>
 
-          <motion.a
-            href={`https://wa.me/${(platformSettings.whatsapp_number || '966538182861').replace(/\+/g, '')}`}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="fixed bottom-6 right-6 rtl:right-auto rtl:left-6 bg-green-500 text-white p-4 rounded-full shadow-lg hover:bg-green-600 transition-colors z-50 flex items-center justify-center"
-            whileHover={{ scale: 1.1 }}
-            whileTap={{ scale: 0.9 }}
-            aria-label="تواصل عبر واتساب"
-          >
-            <MessageSquare className="w-8 h-8" />
-          </motion.a>
+          {/* Mobile Menu */}
+          <Sheet open={isOpen} onOpenChange={setIsOpen}>
+            <SheetTrigger asChild className="md:hidden">
+              <Button variant="ghost" size="sm">
+                <Menu className="h-5 w-5" />
+              </Button>
+            </SheetTrigger>
+            <SheetContent side="right" className="w-[300px] sm:w-[400px]">
+              <SheetHeader>
+                <SheetTitle className="text-right">القائمة</SheetTitle>
+                <SheetDescription className="text-right">
+                  تصفح الخدمات والصفحات
+                </SheetDescription>
+              </SheetHeader>
+              <div className="grid gap-4 py-4">
+                {navigation.map((item) => (
+                  <Link
+                    key={item.name}
+                    to={item.href}
+                    className="flex items-center space-x-2 space-x-reverse text-right p-2 hover:bg-accent rounded-md"
+                    onClick={() => setIsOpen(false)}
+                  >
+                    <item.icon className="h-4 w-4" />
+                    <span>{item.name}</span>
+                  </Link>
+                ))}
+                
+                {user ? (
+                  <>
+                    <hr />
+                    <Link
+                      to="/dashboard"
+                      className="flex items-center space-x-2 space-x-reverse text-right p-2 hover:bg-accent rounded-md"
+                      onClick={() => setIsOpen(false)}
+                    >
+                      <Settings className="h-4 w-4" />
+                      <span>لوحة التحكم</span>
+                    </Link>
+                    {userRole === 'admin' && (
+                      <Link
+                        to="/admin"
+                        className="flex items-center space-x-2 space-x-reverse text-right p-2 hover:bg-accent rounded-md"
+                        onClick={() => setIsOpen(false)}
+                      >
+                        <Settings className="h-4 w-4" />
+                        <span>إدارة النظام</span>
+                      </Link>
+                    )}
+                    <Button 
+                      variant="ghost" 
+                      className="justify-start p-2"
+                      onClick={() => {
+                        handleSignOut();
+                        setIsOpen(false);
+                      }}
+                    >
+                      <LogOut className="mr-2 h-4 w-4" />
+                      تسجيل الخروج
+                    </Button>
+                  </>
+                ) : (
+                  <>
+                    <hr />
+                    <Button 
+                      variant="ghost" 
+                      className="justify-start p-2"
+                      onClick={() => {
+                        navigate('/auth');
+                        setIsOpen(false);
+                      }}
+                    >
+                      <LogIn className="mr-2 h-4 w-4" />
+                      تسجيل الدخول
+                    </Button>
+                    <Button 
+                      className="justify-start p-2"
+                      onClick={() => {
+                        navigate('/auth');
+                        setIsOpen(false);
+                      }}
+                    >
+                      <UserPlus className="mr-2 h-4 w-4" />
+                      إنشاء حساب
+                    </Button>
+                  </>
+                )}
+              </div>
+            </SheetContent>
+          </Sheet>
         </div>
-      );
-    };
-    
-    export default Layout;
+      </header>
+
+      {/* Main Content */}
+      <main className="container mx-auto px-4 py-8">
+        {children}
+      </main>
+
+      {/* Footer */}
+      <footer className="border-t bg-muted/50">
+        <div className="container mx-auto px-4 py-8">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div>
+              <h3 className="font-semibold text-lg mb-4">Drmnef</h3>
+              <p className="text-sm text-muted-foreground">
+                خدمات احترافية للأجهزة الذكية والحلول الرقمية
+              </p>
+            </div>
+            <div>
+              <h4 className="font-semibold mb-4">روابط سريعة</h4>
+              <ul className="space-y-2 text-sm">
+                {navigation.map((item) => (
+                  <li key={item.name}>
+                    <Link to={item.href} className="text-muted-foreground hover:text-primary">
+                      {item.name}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
+            <div>
+              <h4 className="font-semibold mb-4">تواصل معنا</h4>
+              <p className="text-sm text-muted-foreground">
+                البريد الإلكتروني: info@drmnef.com
+              </p>
+              <p className="text-sm text-muted-foreground">
+                الهاتف: +966 XX XXX XXXX
+              </p>
+            </div>
+          </div>
+          <hr className="my-6" />
+          <div className="text-center text-sm text-muted-foreground">
+            © 2024 Drmnef. جميع الحقوق محفوظة.
+          </div>
+        </div>
+      </footer>
+    </div>
+  );
+};
+
+export default Layout;
